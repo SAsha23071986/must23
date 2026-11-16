@@ -1,0 +1,185 @@
+esphome:
+  name: inverter-monitor
+  friendly_name: MUST PV18-2012PRO
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+wifi:
+  ssid: "TOTOLINK_A3002RU"
+  password: "ВАШ_ПАРОЛЬ_ОТ_WIFI"
+
+  ap:
+    ssid: "MUST-Inverter-AP"
+    password: "password1234"
+
+captive_portal:
+
+web_server:
+  port: 80
+  version: 2
+
+logger:
+
+uart:
+  id: uart_inverter
+  baud_rate: 19200
+  tx_pin: GPIO17
+  rx_pin: GPIO16
+  stop_bits: 1
+
+modbus:
+  id: modbus_inverter
+  uart_id: uart_inverter
+  flow_control_pin: GPIO4
+
+modbus_controller:
+  - id: must_inverter
+    address: 0x04
+    modbus_id: modbus_inverter
+    setup_priority: -10
+    update_interval: 5s
+
+sensor:
+  - platform: modbus_controller
+    modbus_controller_id: must_inverter
+    name: "Battery Voltage"
+    address: 25205
+    register_type: holding
+    value_type: U_WORD
+    unit_of_measurement: "V"
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: must_inverter
+    name: "Battery Current"
+    address: 25274
+    register_type: holding
+    value_type: S_WORD
+    unit_of_measurement: "A"
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: must_inverter
+    name: "Battery Power"
+    address: 25273
+    register_type: holding
+    value_type: S_WORD
+    unit_of_measurement: "W"
+    accuracy_decimals: 0
+
+  - platform: modbus_controller
+    modbus_controller_id: must_inverter
+    name: "Grid Voltage"
+    address: 25207
+    register_type: holding
+    value_type: U_WORD
+    unit_of_measurement: "V"
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: must_inverter
+    name: "Grid Frequency"
+    address: 25209
+    register_type: holding
+    value_type: U_WORD
+    unit_of_measurement: "Hz"
+    accuracy_decimals: 2
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: must_inverter
+    name: "Output Voltage"
+    address: 25206
+    register_type: holding
+    value_type: U_WORD
+    unit_of_measurement: "V"
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: must_inverter
+    name: "Load Power"
+    address: 25213
+    register_type: holding
+    value_type: U_WORD
+    unit_of_measurement: "W"
+    accuracy_decimals: 0
+
+  - platform: modbus_controller
+    modbus_controller_id: must_inverter
+    name: "Load Percentage"
+    address: 25216
+    register_type: holding
+    value_type: U_WORD
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+
+  - platform: modbus_controller
+    modbus_controller_id: must_inverter
+    name: "PV Voltage"
+    address: 15205
+    register_type: holding
+    value_type: U_WORD
+    unit_of_measurement: "V"
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: must_inverter
+    name: "PV Power"
+    address: 15208
+    register_type: holding
+    value_type: U_WORD
+    unit_of_measurement: "W"
+    accuracy_decimals: 0
+
+  - platform: modbus_controller
+    modbus_controller_id: must_inverter
+    name: "Radiator Temperature"
+    address: 25233
+    register_type: holding
+    value_type: S_WORD
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+
+select:
+  - platform: modbus_controller
+    modbus_controller_id: must_inverter
+    name: "Energy Use Mode"
+    address: 20109
+    value_type: U_WORD
+    optionsmap:
+      "SBU": 0
+      "SUB": 1
+      "UTI": 2
+      "SOL": 3
+
+  - platform: modbus_controller
+    modbus_controller_id: must_inverter
+    name: "Charger Priority"
+    address: 20143
+    value_type: U_WORD
+    optionsmap:
+      "Solar First": 0
+      "Solar and Utility": 2
+      "Only Solar": 3
+
+switch:
+  - platform: modbus_controller
+    modbus_controller_id: must_inverter
+    name: "Buzzer"
+    address: 20144
+    register_type: holding
+    bitmask: 1
